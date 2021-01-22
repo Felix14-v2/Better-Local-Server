@@ -5,6 +5,7 @@
   "internalServer.defaultGameMode": "GameMode",
   "internalServer.gameMode.default": "Default",
   "internalServer.offlineMode": "Offline Mode",
+  "internalServer.openDirectory": "Open Directory",
   "internalServer.pvp": "PVP",
   "internalServer.start": "Open Server",
   "internalServer.title": "Internal Server",
