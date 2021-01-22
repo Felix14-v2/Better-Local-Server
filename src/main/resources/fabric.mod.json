@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "id": "better-local-server",
+  "version": "${version}",
+  "name": "BetterLocalServer",
+  "description": "A mod that changes the way local servers are hosted.",
+  "authors": [
+    "Rederpz"
+  ],
+  "contact": {
+    "website": "https://github.com/Rederpz/"
+  },
+  "license": "MIT",
+  "icon": "assets/better-local-server/icon.png",
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      "ml.rederpz.betterlocalserver.BetterLocalServer"
+    ],
+    "main": [
+      "ml.rederpz.betterlocalserver.BetterLocalServer"
+    ]
+  },
+  "mixins": [
+    "better-local-server.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.11.1",
+    "fabric": "*",
+    "minecraft": "1.16.5"
+  }
+}
