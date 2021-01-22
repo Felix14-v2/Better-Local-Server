@@ -3,7 +3,7 @@
   "id": "better-local-server",
   "version": "${version}",
   "name": "BetterLocalServer",
-  "description": "A mod that changes the way local servers are hosted.",
+  "description": "A mod that adds customization options when creating a local server.",
   "authors": [
     "Rederpz"
   ],
