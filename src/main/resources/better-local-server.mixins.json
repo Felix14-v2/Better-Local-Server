@@ -4,6 +4,7 @@
   "package": "ml.rederpz.betterlocalserver.mixin",
   "compatibilityLevel": "JAVA_8",
   "mixins": [
+    "GameMenuScreenMixin"
   ],
   "client": [
   ],

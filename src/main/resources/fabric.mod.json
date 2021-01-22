@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "better-local-server",
   "version": "${version}",
-  "name": "BetterLocalServer",
+  "name": "Better Local Server",
   "description": "A mod that adds customization options when creating a local server.",
   "authors": [
     "Rederpz"
@@ -15,9 +15,6 @@
   "environment": "client",
   "entrypoints": {
     "client": [
-      "ml.rederpz.betterlocalserver.BetterLocalServer"
-    ],
-    "main": [
       "ml.rederpz.betterlocalserver.BetterLocalServer"
     ]
   },
