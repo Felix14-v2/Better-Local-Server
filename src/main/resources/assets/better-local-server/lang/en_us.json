@@ -1,0 +1,12 @@
+{
+  "menu.openInternalServer": "Open Server",
+  "internalServer.allowCheats": "Allow Cheats",
+  "internalServer.allowFlight": "Allow Flight",
+  "internalServer.defaultGameMode": "GameMode",
+  "internalServer.gameMode.default": "Default",
+  "internalServer.offlineMode": "Offline Mode",
+  "internalServer.pvp": "PVP",
+  "internalServer.start": "Open Server",
+  "internalServer.title": "Internal Server",
+  "internalServer.viewDistance": "View Distance: %s chunks"
+}
