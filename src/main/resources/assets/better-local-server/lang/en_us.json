@@ -7,6 +7,8 @@
   "internalServer.offlineMode": "Offline Mode",
   "internalServer.openDirectory": "Open Directory",
   "internalServer.pvp": "PVP",
+  "internalServer.port": "Server Port",
+  "internalServer.port.local": "Use Local Port",
   "internalServer.start": "Open Server",
   "internalServer.title": "Internal Server",
   "internalServer.viewDistance": "View Distance: %s chunks"
