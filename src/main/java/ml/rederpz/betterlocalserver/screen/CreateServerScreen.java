@@ -150,7 +150,7 @@ public final class CreateServerScreen extends Screen {
 
     private boolean openServer(final IntegratedServer server, final int port) {
         final GameMode gameMode = this.gameMode.equals(GameMode.NOT_SET) ? server.getDefaultGameMode() : this.gameMode;
-        server.setOnlineMode(this.offlineCheckbox.isChecked());
+        server.setOnlineMode(!this.offlineCheckbox.isChecked());
         server.setFlightEnabled(!this.flightCheckbox.isChecked());
         server.setPvpEnabled(this.pvpCheckbox.isChecked());
         server.setMotd(this.motdTextField.getText());
