@@ -24,7 +24,7 @@ public final class CreateServerScreen extends Screen {
 
     public static final String AUTO_TEXT = "auto";
     public static final int MAX_PORT = 65535;
-    private final Text portText = new TranslatableText("internalServer.port");
+    private final Text portText = new TranslatableText("internalServer.options.port");
     private final Screen parent;
     private CheckboxWidget cheatsCheckbox, flightCheckbox, localPortCheckbox, pvpCheckbox, offlineCheckbox;
     private TextFieldWidget motdTextField, portTextField;
@@ -44,7 +44,7 @@ public final class CreateServerScreen extends Screen {
         final int x = this.width / 2 - 155;
         final int y = (this.height / 4) - 16;
 
-        this.addButton(this.motdTextField = new TextFieldWidget(this.textRenderer, x, y + 8, 300, 20, new TranslatableText("internalServer.motd")));
+        this.addButton(this.motdTextField = new TextFieldWidget(this.textRenderer, x, y + 8, 300, 20, new TranslatableText("internalServer.options.motd")));
         this.motdTextField.setText(this.client.getServer().getServerMotd());
         this.motdTextField.setEditable(false);
 
@@ -54,18 +54,18 @@ public final class CreateServerScreen extends Screen {
             this.updateButtonNames();
         }));
 
-        this.addButton(this.cheatsCheckbox = new CheckboxWidget(x + 160, y + 32, 100, 20, new TranslatableText("internalServer.allowCheats"), this.client.getServer().getPlayerManager().areCheatsAllowed()));
-        this.addButton(this.flightCheckbox = new CheckboxWidget(x + 160, y + 56, 100, 20, new TranslatableText("internalServer.allowFlight"), this.client.getServer().isFlightEnabled()));
-        this.addButton(this.offlineCheckbox = new CheckboxWidget(x + 160, y + 80, 100, 20, new TranslatableText("internalServer.offlineMode"), !this.client.getServer().isOnlineMode()));
-        this.addButton(this.pvpCheckbox = new CheckboxWidget(x + 160, y + 104, 100, 20, new TranslatableText("internalServer.pvp"), this.client.getServer().isPvpEnabled()));
+        this.addButton(this.cheatsCheckbox = new CheckboxWidget(x + 160, y + 32, 100, 20, new TranslatableText("internalServer.options.allowCheats"), this.client.getServer().getPlayerManager().areCheatsAllowed()));
+        this.addButton(this.flightCheckbox = new CheckboxWidget(x + 160, y + 56, 100, 20, new TranslatableText("internalServer.options.allowFlight"), this.client.getServer().isFlightEnabled()));
+        this.addButton(this.offlineCheckbox = new CheckboxWidget(x + 160, y + 80, 100, 20, new TranslatableText("internalServer.options.offlineMode"), !this.client.getServer().isOnlineMode()));
+        this.addButton(this.pvpCheckbox = new CheckboxWidget(x + 160, y + 104, 100, 20, new TranslatableText("internalServer.options.pvp"), this.client.getServer().isPvpEnabled()));
 
         final int viewDistance = this.client.getServer().getPlayerManager().getViewDistance();
         final double viewDistancePercent = (viewDistance - 2) / 30D;
-        this.addButton(new SliderWidget(x, y + 56, 150, 20, new TranslatableText("internalServer.viewDistance", viewDistance), viewDistancePercent) {
+        this.addButton(new SliderWidget(x, y + 56, 150, 20, new TranslatableText("internalServer.options.viewDistance", viewDistance), viewDistancePercent) {
             @Override
             protected void updateMessage() {
                 final int viewDistance = (int) (2 + (30 * this.value));
-                this.setMessage(new TranslatableText("internalServer.viewDistance", viewDistance));
+                this.setMessage(new TranslatableText("internalServer.options.viewDistance", viewDistance));
             }
 
             @Override
@@ -76,7 +76,7 @@ public final class CreateServerScreen extends Screen {
         });
 
         final int portOffset = this.textRenderer.getWidth(this.portText) + 6;
-        this.addButton(this.portTextField = new TextFieldWidget(this.textRenderer, x + portOffset, y + 80, 150 - portOffset, 20, new TranslatableText("internalServer.port")));
+        this.addButton(this.portTextField = new TextFieldWidget(this.textRenderer, x + portOffset, y + 80, 150 - portOffset, 20, new TranslatableText("internalServer.options.port")));
         this.portTextField.setText(String.valueOf(25565));
         this.portTextField.setTextPredicate(s -> {
             if (s.equals(AUTO_TEXT) && (this.localPortCheckbox != null && this.localPortCheckbox.isChecked())) {
@@ -91,10 +91,10 @@ public final class CreateServerScreen extends Screen {
             }
         });
 
-        this.addButton(this.localPortCheckbox = new CheckboxWidget(x, y + 104, 100, 20, new TranslatableText("internalServer.port.local"), false));
-        this.addButton(new ButtonWidget(x + 80, y + 142, 150, 20, new TranslatableText("internalServer.openDirectory"), button -> Util.getOperatingSystem().open(this.client.getServer().getIconFile().getParentFile().toURI())));
+        this.addButton(this.localPortCheckbox = new CheckboxWidget(x, y + 104, 100, 20, new TranslatableText("internalServer.options.port.local"), false));
+        this.addButton(new ButtonWidget(x + 80, y + 142, 150, 20, new TranslatableText("internalServer.options.openDirectory"), button -> Util.getOperatingSystem().open(this.client.getServer().getIconFile().getParentFile().toURI())));
         this.addButton(new ButtonWidget(x + 160, y + 166, 150, 20, ScreenTexts.CANCEL, (buttonWidget) -> this.client.openScreen(this.parent)));
-        this.addButton(new ButtonWidget(x, y + 166, 150, 20, new TranslatableText("internalServer.start"), (buttonWidget) -> {
+        this.addButton(new ButtonWidget(x, y + 166, 150, 20, new TranslatableText("internalServer.options.start"), (buttonWidget) -> {
             this.client.openScreen(null);
 
             final TranslatableText responseText;
@@ -113,10 +113,10 @@ public final class CreateServerScreen extends Screen {
     }
 
     private void updateButtonNames() {
-        final MutableText text = new TranslatableText("internalServer.defaultGameMode").append(": ");
+        final MutableText text = new TranslatableText("internalServer.options.defaultGameMode").append(": ");
 
         if (this.gameMode.equals(GameMode.NOT_SET)) {
-            this.gameModeButton.setMessage(text.append(new TranslatableText("internalServer.gameMode.default").setStyle(Style.EMPTY.withItalic(true))));
+            this.gameModeButton.setMessage(text.append(new TranslatableText("internalServer.options.gameMode.default").setStyle(Style.EMPTY.withItalic(true))));
         } else {
             this.gameModeButton.setMessage(text.append(new TranslatableText("selectWorld.gameMode." + this.gameMode.getName())));
         }
