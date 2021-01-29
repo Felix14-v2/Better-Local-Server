@@ -71,10 +71,6 @@ public final class OpenLocalServerScreen extends Screen {
         }));
 
         this.addButton(this.cheatsCheckbox = new CheckboxWidget(x + 160, y + 32, 100, 20, new TranslatableText("localServer.options.allowCheats"), this.client.getServer().getPlayerManager().areCheatsAllowed()));
-        this.addButton(this.flightCheckbox = new CheckboxWidget(x + 160, y + 56, 100, 20, new TranslatableText("localServer.options.allowFlight"), this.client.getServer().isFlightEnabled()));
-        this.addButton(this.offlineCheckbox = new CheckboxWidget(x + 160, y + 80, 100, 20, new TranslatableText("localServer.options.offlineMode"), !this.client.getServer().isOnlineMode()));
-        this.offlineCheckbox.active = !this.open;
-        this.addButton(this.pvpCheckbox = new CheckboxWidget(x + 160, y + 104, 100, 20, new TranslatableText("localServer.options.pvp"), this.client.getServer().isPvpEnabled()));
 
         final int viewDistance = this.client.getServer().getPlayerManager().getViewDistance();
         final double viewDistancePercent = (viewDistance - 2) / 30D;
@@ -91,6 +87,8 @@ public final class OpenLocalServerScreen extends Screen {
                 OpenLocalServerScreen.this.client.getServer().getPlayerManager().setViewDistance(viewDistance);
             }
         });
+
+        this.addButton(this.flightCheckbox = new CheckboxWidget(x + 160, y + 56, 100, 20, new TranslatableText("localServer.options.allowFlight"), this.client.getServer().isFlightEnabled()));
 
         final int portOffset = this.textRenderer.getWidth(this.portText) + 6;
         this.addButton(this.portTextField = new TextFieldWidget(this.textRenderer, x + portOffset, y + 80, 150 - portOffset, 20, new TranslatableText("localServer.options.port")));
@@ -109,13 +107,20 @@ public final class OpenLocalServerScreen extends Screen {
         });
         this.portTextField.setEditable(!this.open);
 
+        this.addButton(this.offlineCheckbox = new CheckboxWidget(x + 160, y + 80, 100, 20, new TranslatableText("localServer.options.offlineMode"), !this.client.getServer().isOnlineMode()));
+        this.offlineCheckbox.active = !this.open;
+
         this.addButton(this.localPortCheckbox = new CheckboxWidget(x, y + 104, 100, 20, new TranslatableText("localServer.options.port.local"), false));
         this.localPortCheckbox.active = !this.open;
+
+        this.addButton(this.pvpCheckbox = new CheckboxWidget(x + 160, y + 104, 100, 20, new TranslatableText("localServer.options.pvp"), this.client.getServer().isPvpEnabled()));
+
+        this.addButton(new ButtonWidget(x + (this.open ? 0 : 80), y + 142, 150, 20, new TranslatableText("localServer.options.openDirectory"), button -> Util.getOperatingSystem().open(this.client.getServer().getIconFile().getParentFile().toURI())));
+
         if (this.open) {
             this.addButton(new ButtonWidget(x + 160, y + 142, 150, 20, new TranslatableText("localServer.options.stop"), button -> this.client.getServer().stop(false)));
         }
-        this.addButton(new ButtonWidget(x + (this.open ? 0 : 80), y + 142, 150, 20, new TranslatableText("localServer.options.openDirectory"), button -> Util.getOperatingSystem().open(this.client.getServer().getIconFile().getParentFile().toURI())));
-        this.addButton(new ButtonWidget(x + 160, y + 166, 150, 20, ScreenTexts.CANCEL, (buttonWidget) -> this.client.openScreen(this.parent)));
+
         this.addButton(new ButtonWidget(x, y + 166, 150, 20, new TranslatableText(this.open ? "localServer.options.confirm" : "localServer.options.start"), (buttonWidget) -> {
             this.client.openScreen(null);
             final Text responseText;
@@ -136,6 +141,8 @@ public final class OpenLocalServerScreen extends Screen {
             this.client.inGameHud.getChatHud().addMessage(responseText);
             this.client.updateWindowTitle();
         }));
+
+        this.addButton(new ButtonWidget(x + 160, y + 166, 150, 20, ScreenTexts.CANCEL, (buttonWidget) -> this.client.openScreen(this.parent)));
 
         this.updateButtonNames();
     }
