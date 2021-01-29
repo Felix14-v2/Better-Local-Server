@@ -22,24 +22,24 @@ public abstract class GameMenuScreenMixin extends Screen {
 
     @Inject(method = "initWidgets", at = @At("TAIL"))
     private void initWidgets(final CallbackInfo callbackInfo) {
-        if (this.client != null && this.client.isIntegratedServerRunning()) {
-            for (final AbstractButtonWidget widget : this.buttons) {
-                final Text text = widget.getMessage();
+        for (final AbstractButtonWidget widget : this.buttons) {
+            final Text text = widget.getMessage();
 
-                if (text instanceof TranslatableText) {
-                    final TranslatableText translatableText = (TranslatableText) text;
+            if (text instanceof TranslatableText) {
+                final TranslatableText translatableText = (TranslatableText) text;
 
-                    if (translatableText.getKey().equals("menu.shareToLan")) {
-                        final boolean serverRunning = this.client.getServer() != null && this.client.getServer().isRemote();
-
-                        if (serverRunning) {
-                            widget.setMessage(new TranslatableText("menu.localServer.options"));
-                        } else {
-                            widget.setMessage(new TranslatableText("menu.localServer.start"));
-                        }
-
+                if (translatableText.getKey().equals("menu.shareToLan")) {
+                    if (this.client != null && this.client.isIntegratedServerRunning()) {
                         widget.active = true;
+
+                        if (this.client.getServer() != null && this.client.getServer().isRemote()) {
+                            widget.setMessage(new TranslatableText("menu.localServer.options"));
+                            break;
+                        }
                     }
+
+                    widget.setMessage(new TranslatableText("menu.localServer.start"));
+                    break;
                 }
             }
         }
