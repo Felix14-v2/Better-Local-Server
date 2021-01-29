@@ -1,6 +1,6 @@
-package ml.rederpz.betterlocalserver.mixin;
+package ml.rederpz.betterlocalserver.mixin.impl.screen;
 
-import ml.rederpz.betterlocalserver.screen.CreateServerScreen;
+import ml.rederpz.betterlocalserver.screen.OpenLocalServerScreen;
 import net.minecraft.client.gui.screen.OpenToLanScreen;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.text.Text;
@@ -26,8 +26,8 @@ public abstract class OpenToLanScreenMixin extends Screen {
     }
 
     @SuppressWarnings("ConstantConditions")
-    @Inject(method = "init", at = @At("HEAD"))
+    @Inject(method = "init()V", at = @At("HEAD"))
     private void onScreenCreated(final CallbackInfo callbackInfo) {
-        this.client.openScreen(new CreateServerScreen(this.parent));
+        this.client.openScreen(new OpenLocalServerScreen(this.parent));
     }
 }

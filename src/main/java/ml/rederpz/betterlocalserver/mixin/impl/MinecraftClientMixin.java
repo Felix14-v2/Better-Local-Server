@@ -1,4 +1,4 @@
-package ml.rederpz.betterlocalserver.mixin;
+package ml.rederpz.betterlocalserver.mixin.impl;
 
 import net.minecraft.client.MinecraftClient;
 import org.spongepowered.asm.mixin.Mixin;
@@ -13,6 +13,6 @@ public abstract class MinecraftClientMixin {
 
     @ModifyConstant(method = "getWindowTitle", constant = @Constant(stringValue = "title.multiplayer.lan"))
     private String createLANButton(final String value) {
-        return "title.multiplayer.internal";
+        return "title.multiplayer.local";
     }
 }

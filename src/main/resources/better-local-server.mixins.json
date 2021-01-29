@@ -1,12 +1,13 @@
 {
   "required": true,
   "minVersion": "0.8",
-  "package": "ml.rederpz.betterlocalserver.mixin",
+  "package": "ml.rederpz.betterlocalserver.mixin.impl",
   "compatibilityLevel": "JAVA_8",
   "mixins": [
-    "GameMenuScreenMixin",
     "MinecraftClientMixin",
-    "OpenToLanScreenMixin"
+    "screen.GameMenuScreenMixin",
+    "screen.OpenToLanScreenMixin",
+    "server.PlayerManagerMixin"
   ],
   "client": [
   ],
