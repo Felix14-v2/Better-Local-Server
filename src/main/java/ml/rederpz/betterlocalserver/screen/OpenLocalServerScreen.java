@@ -185,7 +185,7 @@ public final class OpenLocalServerScreen extends Screen {
     private GameMode updateServerOptions(final IntegratedServer server) {
         final GameMode gameMode = this.gameMode.equals(GameMode.NOT_SET) ? server.getDefaultGameMode() : this.gameMode;
         server.setOnlineMode(!this.offlineCheckbox.isChecked());
-        server.setFlightEnabled(!this.flightCheckbox.isChecked());
+        server.setFlightEnabled(this.flightCheckbox.isChecked());
         server.setPvpEnabled(this.pvpCheckbox.isChecked());
         server.setMotd(this.motdTextField.getText());
         server.getPlayerManager().setGameMode(gameMode);
