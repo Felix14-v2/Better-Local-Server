@@ -7,6 +7,8 @@ import net.fabricmc.api.ClientModInitializer;
  */
 public final class BetterLocalServer implements ClientModInitializer {
 
+    public static final int MAX_PORT = 65535;
+
     @Override
     public void onInitializeClient() {
 

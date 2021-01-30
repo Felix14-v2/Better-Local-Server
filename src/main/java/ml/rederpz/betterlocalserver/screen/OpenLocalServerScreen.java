@@ -1,6 +1,7 @@
 package ml.rederpz.betterlocalserver.screen;
 
-import ml.rederpz.betterlocalserver.mixin.adapter.PlayerManagerAdapter;
+import ml.rederpz.betterlocalserver.BetterLocalServer;
+import ml.rederpz.betterlocalserver.config.LocalServerConfig;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.gui.DrawableHelper;
@@ -10,12 +11,15 @@ import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.gui.widget.CheckboxWidget;
 import net.minecraft.client.gui.widget.SliderWidget;
 import net.minecraft.client.gui.widget.TextFieldWidget;
-import net.minecraft.client.util.NetworkUtils;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.server.integrated.IntegratedServer;
 import net.minecraft.text.*;
+import net.minecraft.util.Formatting;
 import net.minecraft.util.Util;
 import net.minecraft.world.GameMode;
+
+import java.util.Map;
+import java.util.Objects;
 
 /**
  * @author Rederpz on Jan 22, 2021
@@ -24,15 +28,15 @@ import net.minecraft.world.GameMode;
 public final class OpenLocalServerScreen extends Screen {
 
     public static final String AUTO_TEXT = "auto";
-    public static final int MAX_PORT = 65535;
     private final Text portText = new TranslatableText("localServer.options.port");
     private final Screen parent;
-    private boolean open;
     private CheckboxWidget cheatsCheckbox, flightCheckbox, localPortCheckbox, pvpCheckbox, offlineCheckbox;
     private TextFieldWidget motdTextField, portTextField;
     private GameMode gameMode = GameMode.NOT_SET;
     private ButtonWidget gameModeButton;
+    private LocalServerConfig config;
     private boolean localPortState;
+    private int viewDistance;
 
     public OpenLocalServerScreen(final Screen parent) {
         super(new TranslatableText("localServer.title"));
@@ -44,24 +48,21 @@ public final class OpenLocalServerScreen extends Screen {
     @Override
     protected void init() {
         final boolean integratedServerRunning = this.client.isIntegratedServerRunning() && this.client.getServer() != null;
-        this.open = integratedServerRunning && this.client.getServer().isRemote();
 
         if (!integratedServerRunning) {
             this.client.openScreen(this.parent);
             return;
-        } else {
-            final GameMode gameMode = ((PlayerManagerAdapter) this.client.getServer().getPlayerManager()).getGameMode();
-
-            if (gameMode != null) {
-                this.gameMode = gameMode;
-            }
         }
+
+        this.config = new LocalServerConfig(this.client.getServer());
+        this.gameMode = this.config.getGameMode();
+        this.viewDistance = this.config.getViewDistance();
 
         final int x = this.width / 2 - 155;
         final int y = (this.height / 4) - 16;
 
         this.addButton(this.motdTextField = new TextFieldWidget(this.textRenderer, x, y + 8, 300, 20, new TranslatableText("localServer.options.motd")));
-        this.motdTextField.setText(this.client.getServer().getServerMotd());
+        this.motdTextField.setText(this.config.getMOTD());
         this.motdTextField.setEditable(false);
 
         this.addButton(this.gameModeButton = new ButtonWidget(x, y + 32, 150, 20, LiteralText.EMPTY, (buttonWidget) -> {
@@ -70,9 +71,9 @@ public final class OpenLocalServerScreen extends Screen {
             this.updateButtonNames();
         }));
 
-        this.addButton(this.cheatsCheckbox = new CheckboxWidget(x + 160, y + 32, 100, 20, new TranslatableText("localServer.options.allowCheats"), this.client.getServer().getPlayerManager().areCheatsAllowed()));
+        this.addButton(this.cheatsCheckbox = new CheckboxWidget(x + 160, y + 32, 100, 20, new TranslatableText("localServer.options.allowCheats"), this.config.areCheatsEnabled()));
 
-        final int viewDistance = this.client.getServer().getPlayerManager().getViewDistance();
+        final int viewDistance = this.config.getViewDistance();
         final double viewDistancePercent = (viewDistance - 2) / 30D;
         this.addButton(new SliderWidget(x, y + 56, 150, 20, new TranslatableText("localServer.options.viewDistance", viewDistance), viewDistancePercent) {
             @Override
@@ -83,59 +84,52 @@ public final class OpenLocalServerScreen extends Screen {
 
             @Override
             protected void applyValue() {
-                final int viewDistance = (int) (2 + (30 * this.value));
-                OpenLocalServerScreen.this.client.getServer().getPlayerManager().setViewDistance(viewDistance);
+                OpenLocalServerScreen.this.viewDistance = (int) (2 + (30 * this.value));
             }
         });
 
-        this.addButton(this.flightCheckbox = new CheckboxWidget(x + 160, y + 56, 100, 20, new TranslatableText("localServer.options.allowFlight"), this.client.getServer().isFlightEnabled()));
+        this.addButton(this.flightCheckbox = new CheckboxWidget(x + 160, y + 56, 100, 20, new TranslatableText("localServer.options.allowFlight"), this.config.isFlightEnabled()));
 
         final int portOffset = this.textRenderer.getWidth(this.portText) + 6;
         this.addButton(this.portTextField = new TextFieldWidget(this.textRenderer, x + portOffset, y + 80, 150 - portOffset, 20, new TranslatableText("localServer.options.port")));
-        this.portTextField.setText(String.valueOf(this.open ? this.client.getServer().getServerPort() : 25565));
+        this.portTextField.setText(String.valueOf(this.config.getPort(false)));
         this.portTextField.setTextPredicate(s -> {
-            if (s.equals(AUTO_TEXT) && (this.localPortCheckbox != null && this.localPortCheckbox.isChecked())) {
+            if (s.equals(AUTO_TEXT) && this.config.isUsingLocalPort()) {
                 return true;
             } else {
                 try {
                     final int port = Integer.parseInt(s);
-                    return this.isValidPort(port);
+                    return port > 0 && port < BetterLocalServer.MAX_PORT;
                 } catch (final IllegalArgumentException e) {
                     return false;
                 }
             }
         });
-        this.portTextField.setEditable(!this.open);
+        this.portTextField.setEditable(!this.config.isRemote());
 
-        this.addButton(this.offlineCheckbox = new CheckboxWidget(x + 160, y + 80, 100, 20, new TranslatableText("localServer.options.offlineMode"), !this.client.getServer().isOnlineMode()));
-        this.offlineCheckbox.active = !this.open;
+        this.addButton(this.offlineCheckbox = new CheckboxWidget(x + 160, y + 80, 100, 20, new TranslatableText("localServer.options.offlineMode"), this.config.isOfflineMode()));
+        this.offlineCheckbox.active = !this.config.isRemote();
 
-        this.addButton(this.localPortCheckbox = new CheckboxWidget(x, y + 104, 100, 20, new TranslatableText("localServer.options.port.local"), false));
-        this.localPortCheckbox.active = !this.open;
+        this.addButton(this.localPortCheckbox = new CheckboxWidget(x, y + 104, 100, 20, new TranslatableText("localServer.options.port.local"), this.config.isUsingLocalPort()));
+        this.localPortCheckbox.active = !this.config.isRemote();
 
-        this.addButton(this.pvpCheckbox = new CheckboxWidget(x + 160, y + 104, 100, 20, new TranslatableText("localServer.options.pvp"), this.client.getServer().isPvpEnabled()));
+        this.addButton(this.pvpCheckbox = new CheckboxWidget(x + 160, y + 104, 100, 20, new TranslatableText("localServer.options.pvp"), this.config.isPVPEnabled()));
 
-        this.addButton(new ButtonWidget(x + (this.open ? 0 : 80), y + 142, 150, 20, new TranslatableText("localServer.options.openDirectory"), button -> Util.getOperatingSystem().open(this.client.getServer().getIconFile().getParentFile().toURI())));
+        this.addButton(new ButtonWidget(x + (this.config.isRemote() ? 0 : 80), y + 142, 150, 20, new TranslatableText("localServer.options.openDirectory"), button -> Util.getOperatingSystem().open(this.client.getServer().getIconFile().getParentFile().toURI())));
 
-        if (this.open) {
+        if (this.config.isRemote()) {
             this.addButton(new ButtonWidget(x + 160, y + 142, 150, 20, new TranslatableText("localServer.options.stop"), button -> this.client.getServer().stop(false)));
         }
 
-        this.addButton(new ButtonWidget(x, y + 166, 150, 20, new TranslatableText(this.open ? "localServer.options.confirm" : "localServer.options.start"), (buttonWidget) -> {
+        this.addButton(new ButtonWidget(x, y + 166, 150, 20, new TranslatableText(this.config.isRemote() ? "localServer.options.confirm" : "localServer.options.start"), (buttonWidget) -> {
             this.client.openScreen(null);
             final Text responseText;
 
-            if (this.open) {
-                this.client.openScreen(null);
-                this.updateServerOptions(this.client.getServer());
-                responseText = new TranslatableText("commands.localServer.update");
+            if (this.config.isRemote()) {
+                responseText = this.getResponse(this.updateServerOptions(this.client.getServer()), false);
             } else {
-                final int port = this.getPort();
-                if (this.openServer(this.client.getServer(), port)) {
-                    responseText = new TranslatableText("commands.localServer.start");
-                } else {
-                    responseText = new TranslatableText("commands.localServer.start.error");
-                }
+                final LocalServerConfig config = this.openServer(this.client.getServer());
+                responseText = this.getResponse(config, true);
             }
 
             this.client.inGameHud.getChatHud().addMessage(responseText);
@@ -149,12 +143,7 @@ public final class OpenLocalServerScreen extends Screen {
 
     private void updateButtonNames() {
         final MutableText text = new TranslatableText("localServer.options.defaultGameMode").append(": ");
-
-        if (this.gameMode.equals(GameMode.NOT_SET)) {
-            this.gameModeButton.setMessage(text.append(new TranslatableText("localServer.options.gameMode.default").setStyle(Style.EMPTY.withItalic(true))));
-        } else {
-            this.gameModeButton.setMessage(text.append(new TranslatableText("selectWorld.gameMode." + this.gameMode.getName())));
-        }
+        this.gameModeButton.setMessage(text.append(this.getText(this.gameMode)));
     }
 
     @Override
@@ -163,7 +152,7 @@ public final class OpenLocalServerScreen extends Screen {
         DrawableHelper.drawCenteredText(matrices, this.textRenderer, this.title, this.width / 2, 40, 0xFFFFFFFF);
         DrawableHelper.drawCenteredText(matrices, this.textRenderer, this.title, this.width / 2, 40, 0xFFFFFFFF);
 
-        if (!this.open) {
+        if (!this.config.isRemote()) {
             final boolean randomPort = this.localPortCheckbox.isChecked();
             if (this.localPortState != randomPort) {
                 if (randomPort) {
@@ -171,7 +160,7 @@ public final class OpenLocalServerScreen extends Screen {
                     this.portTextField.setText(AUTO_TEXT);
                 } else {
                     this.portTextField.setEditable(true);
-                    this.portTextField.setText(String.valueOf(25565));
+                    this.portTextField.setText(String.valueOf(this.config.getPort(false)));
                 }
                 this.localPortState = randomPort;
             }
@@ -185,31 +174,81 @@ public final class OpenLocalServerScreen extends Screen {
         super.render(matrices, mouseX, mouseY, delta);
     }
 
-    private boolean openServer(final IntegratedServer server, final int port) {
-        return server.openToLan(this.updateServerOptions(server), this.cheatsCheckbox.isChecked(), port);
+    private LocalServerConfig openServer(final IntegratedServer server) {
+        final LocalServerConfig config = this.updateServerOptions(server);
+        config.setUsingLocalPort(this.localPortCheckbox.isChecked());
+
+        if (server.openToLan(config.getGameMode(), config.areCheatsEnabled(), config.getPort(true))) {
+            config.setGameMode(config.getGameMode());
+            config.setPort(server.getServerPort());
+            config.setRemote(true);
+            return config;
+        } else {
+            return null;
+        }
     }
 
-    private GameMode updateServerOptions(final IntegratedServer server) {
+    private LocalServerConfig updateServerOptions(final IntegratedServer server) {
         final GameMode gameMode = this.gameMode.equals(GameMode.NOT_SET) ? server.getDefaultGameMode() : this.gameMode;
         server.setOnlineMode(!this.offlineCheckbox.isChecked());
         server.setFlightEnabled(this.flightCheckbox.isChecked());
         server.setPvpEnabled(this.pvpCheckbox.isChecked());
         server.setMotd(this.motdTextField.getText());
+        server.getPlayerManager().setViewDistance(this.viewDistance);
         server.getPlayerManager().setGameMode(gameMode);
         server.getPlayerManager().setCheatsAllowed(this.cheatsCheckbox.isChecked());
-        return gameMode;
+        return new LocalServerConfig(server);
     }
 
-    private int getPort() {
-        if (this.localPortCheckbox.isChecked()) {
-            return NetworkUtils.findLocalPort();
+    private Text getResponse(final LocalServerConfig config, final boolean start) {
+        if (config != null) {
+            final MutableText text = new TranslatableText(start ? "commands.localServer.start" : "commands.localServer.update");
+            final Map<BaseText, Map.Entry<Object, Object>> changes = this.config.getChanges(config);
+            MutableText hoverText = new LiteralText("");
+            int loggedChanges = 0;
+
+            for (final BaseText option : changes.keySet()) {
+                final Map.Entry<Object, Object> value = changes.get(option);
+
+                if (!Objects.equals(value.getKey(), value.getValue())) {
+                    hoverText = hoverText.append(option).append(": ").append(this.getText(value.getKey())).append(" -> ").append(this.getText(value.getValue())).append("\n");
+                    loggedChanges++;
+                }
+            }
+
+            if (loggedChanges == 0) {
+                hoverText = new TranslatableText("commands.localServer.update.none");
+            }else{
+                hoverText = hoverText.append(new TranslatableText("commands.localServer.update.info", loggedChanges));
+            }
+
+            final Style bracketStyle = Style.EMPTY.withColor(Formatting.GRAY);
+            final Style updatesStyle = Style.EMPTY.withColor(Formatting.YELLOW).withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, hoverText));
+            return text.append(new LiteralText(" [").setStyle(bracketStyle))
+                    .append(new TranslatableText("commands.localServer.update.view").setStyle(updatesStyle))
+                    .append(new LiteralText("]").setStyle(bracketStyle));
         } else {
-            final int parsed = Integer.parseInt(this.portTextField.getText());
-            return !this.isValidPort(parsed) ? NetworkUtils.findLocalPort() : parsed;
+            return new TranslatableText("commands.localServer.start.error");
         }
     }
 
-    private boolean isValidPort(final int port) {
-        return port >= 0 && port <= MAX_PORT;
+    private Text getText(final Object value) {
+        if (value instanceof Boolean) {
+            final Boolean booleanValue = (Boolean) value;
+            return new LiteralText(String.valueOf(booleanValue)).setStyle(Style.EMPTY.withColor(booleanValue ? Formatting.GREEN : Formatting.RED));
+        } else if (value instanceof Number) {
+            final Number numberValue = (Number) value;
+            return new LiteralText(String.valueOf(numberValue)).setStyle(Style.EMPTY.withColor(Formatting.AQUA));
+        } else if (value instanceof GameMode) {
+            final GameMode gameModeValue = (GameMode) value;
+
+            if (gameModeValue.equals(GameMode.NOT_SET)) {
+                return new TranslatableText("localServer.options.gameMode.default").setStyle(Style.EMPTY.withItalic(true));
+            } else {
+                return new TranslatableText("selectWorld.gameMode." + gameModeValue.getName());
+            }
+        } else {
+            return new LiteralText(String.valueOf(value));
+        }
     }
 }
