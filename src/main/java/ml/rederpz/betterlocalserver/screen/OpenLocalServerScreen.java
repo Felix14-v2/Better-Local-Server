@@ -94,7 +94,7 @@ public final class OpenLocalServerScreen extends Screen {
         this.addButton(this.portTextField = new TextFieldWidget(this.textRenderer, x + portOffset, y + 80, 150 - portOffset, 20, new TranslatableText("localServer.options.port")));
         this.portTextField.setText(String.valueOf(this.config.getPort(false)));
         this.portTextField.setTextPredicate(s -> {
-            if (s.equals(AUTO_TEXT) && this.config.isUsingLocalPort()) {
+            if (s.equals(AUTO_TEXT) && this.localPortCheckbox.isChecked()) {
                 return true;
             } else {
                 try {
